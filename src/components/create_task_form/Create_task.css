@@ -1,0 +1,140 @@
+/* ========================= */
+/*  ОБЩЕЕ СТИЛИЗАЦИЯ        */
+/* ========================= */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 15px;
+    width: 90%;
+    max-width: 450px;
+    padding: 20px 25px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+}
+
+.modal-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* ========================= */
+/*  ФОРМА ВВОДА             */
+/* ========================= */
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Поля ввода */
+.input-field,
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f8f8f8;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+.input-field:focus,
+textarea:focus,
+select:focus {
+    border: 1px solid #007bff;
+}
+
+/* Редактор текста */
+.rich-editor {
+    background: #fff;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+/* ========================= */
+/*  КНОПКИ СОХРАНЕНИЯ/ОТМЕНЫ */
+/* ========================= */
+
+.button-container {
+    display: flex;
+    justify-content: space-between; /* Кнопки располагаются по краям */
+    margin-top: 20px;
+}
+
+/* Кнопка "Отмена" */
+.button-cancel {
+    background-color: #d9534f;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 48%;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.button-cancel:hover {
+    background-color: #c9302c;
+    transform: translateY(-2px);
+}
+
+/* Кнопка "Сохранить" */
+.button-submit {
+    background-color: #5cb85c;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 48%;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.button-submit:hover {
+    background-color: #4cae4c;
+    transform: translateY(-2px);
+}
+
+/* ========================= */
+/*  АНИМАЦИЯ ОКНА           */
+/* ========================= */
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

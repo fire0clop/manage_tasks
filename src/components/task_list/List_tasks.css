@@ -1,0 +1,300 @@
+/* ========================= */
+/*  ОБЩИЕ СТИЛИ ДОСКИ       */
+/* ========================= */
+
+.kanban-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.kanban-container {
+    display: flex;
+    gap: 20px;
+    background: #f9faff;
+    padding: 20px;
+}
+
+/* ========================= */
+/*  СТИЛИ КОЛОНОК           */
+/* ========================= */
+
+.kanban-column {
+    flex: 1;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    overflow: auto;
+    transition: border-color 0.3s;
+}
+
+.kanban-column-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* Обводка при перетаскивании */
+.kanban-column:hover {
+    border-color: #007bff;
+}
+
+/* ========================= */
+/*  СТИЛИ КАРТОЧЕК ЗАДАЧ    */
+/* ========================= */
+
+.task-card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================= */
+/*  ЗАГОЛОВОК КАРТОЧКИ      */
+/* ========================= */
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+/* Левая секция заголовка */
+.left-section {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Заголовок задачи */
+.task-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333333;
+    margin: 0 0 8px;
+}
+
+/* Дедлайн задачи */
+.task-deadline {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #666666;
+}
+
+/* Цвета для дедлайна */
+.task-deadline.deadline-expired {
+    color: #d9534f; /* Красный, если просрочен */
+}
+
+.task-deadline.deadline-soon {
+    color: #f0ad4e; /* Желтый, если скоро истекает */
+}
+
+/* ========================= */
+/*  ОПИСАНИЕ ЗАДАЧИ         */
+/* ========================= */
+
+.task-body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #444444;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.task-body.collapsed {
+    max-height: 50px;
+}
+
+.task-body.expanded {
+    max-height: 200px;
+}
+
+/* ========================= */
+/*  КНОПКИ В ЗАДАЧЕ         */
+/* ========================= */
+
+/* Кнопка раскрытия описания (осталась сверху справа) */
+.toggle-description-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #007bff;
+    transition: transform 0.2s ease-in-out;
+}
+
+.toggle-description-btn:hover {
+    color: #0056b3;
+    transform: scale(1.1);
+}
+
+/* Контейнер кнопок редактирования и удаления (справа внизу) */
+.button-group {
+    display: flex;
+    gap: 8px;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+/* Кнопка редактирования */
+.edit-task-btn {
+    background: none;
+    border: none;
+    color: #f0ad4e;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.edit-task-btn:hover {
+    color: #ec971f;
+    transform: scale(1.1);
+}
+
+/* Кнопка удаления */
+.delete-task-btn {
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.delete-task-btn:hover {
+    color: #ff0000;
+    transform: scale(1.1);
+}
+
+/* ========================= */
+/*  ПОЛЕ ПОИСКА             */
+/* ========================= */
+
+.search-input {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 250px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.search-input:focus {
+    border-color: #007bff;
+}
+
+/* ========================= */
+/*  МОДАЛЬНЫЕ ОКНА          */
+/* ========================= */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 15px;
+    width: 90%;
+    max-width: 450px;
+    padding: 20px 25px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+}
+
+.modal h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* ========================= */
+/*  КНОПКИ В МОДАЛЬНОМ ОКНЕ */
+/* ========================= */
+
+.submit-btn,
+.cancel-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 48%;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.submit-btn {
+    background-color: #5cb85c;
+    color: white;
+}
+
+.submit-btn:hover {
+    background-color: #4cae4c;
+    transform: translateY(-2px);
+}
+
+.cancel-btn {
+    background-color: #d9534f;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #c9302c;
+    transform: translateY(-2px);
+}
+
+/* ========================= */
+/*  КНОПКИ СОЗДАНИЯ И СОРТИРОВКИ */
+/* ========================= */
+
+.open-modal-btn {
+    margin: 15px 15px;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    border: none;
+    background: linear-gradient(145deg, #007bff, #0056b3);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s ease;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.open-modal-btn:hover {
+    background: linear-gradient(145deg, #0056b3, #003e7e);
+    transform: scale(1.05);
+}
