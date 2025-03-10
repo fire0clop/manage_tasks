@@ -1,21 +1,60 @@
 import React, { useState } from "react";
-import "../create_task_form/Create_task.css"; // Используем стили окна создания задачи
+import "../create_task_form/Create_task.css"; // Стили
 
-const EditTaskModal = ({ task, onClose, onSave }) => {
+const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description.replace(/<\/?[^>]+(>|$)/g, ""));
     const [deadline, setDeadline] = useState(task.deadline);
+    const API_URL = process.env.REACT_APP_API_URL;
 
-    const handleSubmit = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
-        onSave({ ...task, title, description, deadline });
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.error("Ошибка: Токен отсутствует.");
+            return;
+        }
+
+        const cleanedDescription = description.replace(/<\/?[^>]+(>|$)/g, ""); // Убираем HTML-теги
+
+        const updatedTask = {
+            title,
+            description: cleanedDescription, // Очищенное описание
+            deadline,
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/tasks/${task.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(updatedTask),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка обновления: ${response.status}`);
+            }
+
+            setTasks((prev) =>
+                prev.map((t) => (t.id === task.id ? { ...t, ...updatedTask } : t))
+            );
+
+            setTaskToEdit(null); // Закрываем модальное окно
+            onClose();
+        } catch (error) {
+            console.error("Ошибка при обновлении задачи:", error);
+        }
     };
+
 
     return (
         <div className="modal-overlay">
             <div className="modal">
                 <h2>Редактировать задачу</h2>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSave}>
                     <label>Название задачи:</label>
                     <input
                         type="text"

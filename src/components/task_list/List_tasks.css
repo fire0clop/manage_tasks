@@ -1,6 +1,9 @@
 /* ========================= */
 /*  ОБЩИЕ СТИЛИ ДОСКИ       */
 /* ========================= */
+body {
+    overflow-x: hidden; /* Запрещает горизонтальный скролл */
+}
 
 .kanban-title {
     text-align: center;
@@ -297,4 +300,63 @@
 .open-modal-btn:hover {
     background: linear-gradient(145deg, #0056b3, #003e7e);
     transform: scale(1.05);
+}
+
+
+
+
+
+
+
+.kanban-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 15px 20px;
+}
+
+.logout-btn {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+}
+
+.logout-btn:hover {
+    background-color: #d9363e;
+}
+
+
+
+.load-more-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.load-more-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.load-more-btn:active {
+    background-color: #004092;
+    transform: scale(1);
 }

@@ -1,16 +1,35 @@
+import os
+from dotenv import load_dotenv
 import psycopg2
 
-# Настройки подключения
-connection = psycopg2.connect(
-    dbname="task_manage",  # Имя вашей базы данных
-    user="postgres",  # Имя пользователя PostgreSQL
-    password="Tujh7562",  # Пароль для пользователя postgres
-    host="localhost",  # Локальный хост
-    port="5432"  # Стандартный порт PostgreSQL
-)
+load_dotenv()  # Загружаем переменные из .env
 
-# Убедимся, что соединение установлено
-print("Подключение успешно!")
+def get_db_connection():
+    conn = psycopg2.connect(
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT")
+    )
+    return conn
 
-# Закрытие соединения
-connection.close()
+
+# Создание таблицы пользователей
+def create_users_table():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        );
+    """)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# Запуск создания таблицы
+if __name__ == "__main__":
+    create_users_table()

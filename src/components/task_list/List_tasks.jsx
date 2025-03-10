@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import TaskForm from "../create_task_form/Create_task";
 import "./List_tasks.css";
 import EditTaskModal from "./Edit_task";
+import { useNavigate } from "react-router-dom";
 
 const TaskList = () => {
     const [tasks, setTasks] = useState([]);
@@ -11,12 +12,66 @@ const TaskList = () => {
     const [expandedTask, setExpandedTask] = useState(null);
     const [taskToEdit, setTaskToEdit] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const API_URL = process.env.REACT_APP_API_URL;
+
+
+
+    const handleLogout = () => {
+        localStorage.removeItem("token"); // Удаляем токен
+        navigate("/login"); // Перенаправляем на страницу логина
+    };
+
 
     const [limits, setLimits] = useState({
         new: 5,
         in_progress: 5,
         completed: 5,
     });
+
+
+
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            navigate("/login"); // 🔹 Перенаправляем, если токена нет
+            return;
+        }
+
+        // 🔹 Проверяем валидность токена перед загрузкой задач
+        const checkToken = async () => {
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem("token"); // 🔹 Удаляем токен, если он недействителен
+                    navigate("/login");
+                    return;
+                }
+
+                fetchTasks(); // 🔹 Загружаем задачи, если токен валиден
+            } catch (error) {
+                console.error("Ошибка проверки токена:", error);
+                localStorage.removeItem("token");
+                navigate("/login");
+            }
+        };
+
+        checkToken();
+    }, [navigate]);
+
+
+
+
+
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
     };
@@ -57,47 +112,64 @@ const TaskList = () => {
         }
     };
     const handleDeleteTask = async (taskId) => {
-        if (!taskId) {
-            console.error("Ошибка: ID задачи не указан");
+        if (!taskId) return;
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
             return;
         }
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/tasks/${taskId}`, {
+            const response = await fetch(`${API_URL}/tasks/${taskId}`, {
                 method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
 
             if (!response.ok) {
                 throw new Error(`Ошибка удаления задачи: ${response.status}`);
             }
 
-            console.log(`Задача с ID ${taskId} успешно удалена`);
-
-            // Обновляем состояние, удаляя задачу из списка
             setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
         } catch (error) {
             console.error("Ошибка при удалении задачи:", error);
         }
     };
 
+
     const fetchTasks = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+            return;
+        }
+
         try {
-            const response = await fetch("http://127.0.0.1:8000/tasks");
+            const response = await fetch(`${API_URL}/tasks`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.status === 401) {
+                navigate("/login");
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(`Ошибка загрузки данных: ${response.status}`);
             }
-            const data = await response.json();
-            console.log("Полученные задачи:", data);
 
+            const data = await response.json();
             const formattedData = data.map((task) => ({
                 id: task[0],
                 title: task[1],
                 description: task[2],
                 status: normalizeStatus(task[3]),
-                deadline: task[4]
+                deadline: task[4],
             }));
-
-            console.log("Преобразованные задачи:", formattedData);
 
             setTasks(formattedData);
         } catch (err) {
@@ -106,6 +178,7 @@ const TaskList = () => {
             setLoading(false);
         }
     };
+
 
     const calculateDaysLeft = (deadline) => {
         const today = new Date();
@@ -131,7 +204,7 @@ const TaskList = () => {
 
     const handleUpdateTask = async (updatedTask) => {
         try {
-            const response = await fetch(`http://127.0.0.1:8000/tasks/${updatedTask.id}`, {
+            const response = await fetch(`${API_URL}/tasks/${updatedTask.id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -180,32 +253,39 @@ const TaskList = () => {
 
     const handleChangeStatus = async (taskId, newStatus) => {
         const translatedStatus = translateStatus(newStatus);
+        if (!taskId) return;
 
-        if (!taskId) {
-            console.error("Ошибка: ID задачи не указан");
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
             return;
         }
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/tasks/${taskId}`, {
+            const response = await fetch(`${API_URL}/tasks/${taskId}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ status: translatedStatus }),
             });
 
+            if (response.status === 401) {
+                navigate("/login");
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(`Ошибка сервера: ${response.status}`);
             }
-
-            console.log(`Успешно обновили статус задачи ID ${taskId} на "${translatedStatus}"`);
 
             await fetchTasks();
         } catch (error) {
             console.error("Ошибка при изменении статуса задачи:", error);
         }
     };
+
 
     const handleDragStart = (event, taskId) => {
         event.dataTransfer.setData("taskId", String(taskId));
@@ -246,7 +326,12 @@ const TaskList = () => {
 
     return (
         <div>
-            <h1 className="kanban-title">Kanban-доска</h1>
+            <div className="kanban-header">
+                <h1 className="kanban-title">Kanban-доска</h1>
+                <button className="logout-btn" onClick={handleLogout}>Выйти</button>
+            </div>
+
+
             <button className="open-modal-btn" onClick={sortTasksByDeadline}>
                 Сортировать по дедлайну ({sortOrder === "asc" ? "↑" : "↓"})
             </button>

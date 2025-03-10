@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; // Подключаем стили для редактора
-import "./Create_task.css"; // Ваши кастомные стили
+import "react-quill/dist/quill.snow.css";
+import "./Create_task.css";
 
 const TaskForm = ({ onClose, onTaskCreated }) => {
     const [title, setTitle] = useState("");
-    const [description, setDescription] = useState(""); // Текст с HTML
+    const [description, setDescription] = useState("");
     const [deadline, setDeadline] = useState("");
+
+    const API_URL = process.env.REACT_APP_API_URL;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -16,17 +18,21 @@ const TaskForm = ({ onClose, onTaskCreated }) => {
             return;
         }
 
-        const newTask = {
-            title,
-            description,
-            deadline,
-            status: "новая",
-        };
+        const newTask = { title, description, deadline, status: "новая" };
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            alert("Ошибка: Токен отсутствует. Авторизуйтесь снова.");
+            return;
+        }
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/tasks", {
+            const response = await fetch(`${API_URL}/tasks/`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify(newTask),
             });
 
@@ -34,12 +40,13 @@ const TaskForm = ({ onClose, onTaskCreated }) => {
                 onTaskCreated();
                 onClose();
             } else {
-                console.error("Ошибка при создании задачи");
+                console.error("Ошибка при создании задачи:", await response.json());
             }
         } catch (err) {
             console.error("Ошибка сети: ", err);
         }
     };
+
 
     return (
         <div className="modal-overlay">
