@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../create_task_form/Create_task.css";
 
-const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
+const EditTaskModal = ({ task, onClose, onSave, setTasks }) => {
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description.replace(/<\/?[^>]+(>|$)/g, ""));
     const [deadline, setDeadline] = useState(task.deadline);
@@ -10,16 +10,24 @@ const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
     const handleSave = async (e) => {
         e.preventDefault();
 
+        if (!setTasks || typeof setTasks !== "function") {
+            console.error("Ошибка: setTasks не является функцией!");
+            return;
+        }
+
         const token = localStorage.getItem("token");
         if (!token) {
             console.error("Ошибка: Токен отсутствует.");
             return;
         }
 
+        const formattedDeadline = deadline ? new Date(deadline).toISOString() : null;
+
         const updatedTask = {
             title,
             description: description.replace(/<\/?[^>]+(>|$)/g, ""),
-            deadline,
+            deadline: formattedDeadline,
+            status: task.status,
         };
 
         try {
@@ -40,7 +48,6 @@ const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
                 prev.map((t) => (t.id === task.id ? { ...t, ...updatedTask } : t))
             );
 
-            setTaskToEdit(null);
             onClose();
         } catch (error) {
             console.error("Ошибка при обновлении задачи:", error);

@@ -395,7 +395,9 @@ const TaskList = () => {
                         task={taskToEdit}
                         onClose={() => setTaskToEdit(null)}
                         onSave={handleUpdateTask}
+                        setTasks={setTasks}
                     />
+
                 </div>
             )}
         </div>
