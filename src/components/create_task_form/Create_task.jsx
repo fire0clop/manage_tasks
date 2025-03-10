@@ -9,17 +9,15 @@ const TaskForm = ({ onClose, onTaskCreated }) => {
     const [deadline, setDeadline] = useState("");
 
     const API_URL = process.env.REACT_APP_API_URL;
+    const token = localStorage.getItem("token");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!title) {
-            alert("Пожалуйста, введите название задачи.");
+            alert("Введите название задачи.");
             return;
         }
-
-        const newTask = { title, description, deadline, status: "новая" };
-        const token = localStorage.getItem("token");
 
         if (!token) {
             alert("Ошибка: Токен отсутствует. Авторизуйтесь снова.");
@@ -31,22 +29,22 @@ const TaskForm = ({ onClose, onTaskCreated }) => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify(newTask),
+                body: JSON.stringify({ title, description, deadline, status: "новая" })
             });
 
-            if (response.ok) {
-                onTaskCreated();
-                onClose();
-            } else {
+            if (!response.ok) {
                 console.error("Ошибка при создании задачи:", await response.json());
+                return;
             }
+
+            onTaskCreated();
+            onClose();
         } catch (err) {
-            console.error("Ошибка сети: ", err);
+            console.error("Ошибка сети:", err);
         }
     };
-
 
     return (
         <div className="modal-overlay">
@@ -82,16 +80,8 @@ const TaskForm = ({ onClose, onTaskCreated }) => {
                         />
                     </div>
                     <div className="button-container">
-                        <button type="submit" className="button-submit">
-                            Сохранить
-                        </button>
-                        <button
-                            type="button"
-                            className="button-cancel"
-                            onClick={onClose}
-                        >
-                            Отмена
-                        </button>
+                        <button type="submit" className="button-submit">Сохранить</button>
+                        <button type="button" className="button-cancel" onClick={onClose}>Отмена</button>
                     </div>
                 </form>
             </div>

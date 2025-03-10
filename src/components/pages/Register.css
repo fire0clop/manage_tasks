@@ -30,7 +30,7 @@
     margin: 10px 0;
     border: 1px solid #ddd;
     border-radius: 5px;
-    box-sizing: border-box; /* Добавляем, чтобы ширина учитывала padding */
+    box-sizing: border-box;
 }
 
 .register-container button {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../create_task_form/Create_task.css"; // Стили
+import "../create_task_form/Create_task.css";
 
 const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
     const [title, setTitle] = useState(task.title);
@@ -16,11 +16,9 @@ const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
             return;
         }
 
-        const cleanedDescription = description.replace(/<\/?[^>]+(>|$)/g, ""); // Убираем HTML-теги
-
         const updatedTask = {
             title,
-            description: cleanedDescription, // Очищенное описание
+            description: description.replace(/<\/?[^>]+(>|$)/g, ""),
             deadline,
         };
 
@@ -42,13 +40,12 @@ const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
                 prev.map((t) => (t.id === task.id ? { ...t, ...updatedTask } : t))
             );
 
-            setTaskToEdit(null); // Закрываем модальное окно
+            setTaskToEdit(null);
             onClose();
         } catch (error) {
             console.error("Ошибка при обновлении задачи:", error);
         }
     };
-
 
     return (
         <div className="modal-overlay">
@@ -76,12 +73,8 @@ const EditTaskModal = ({ task, onClose, onSave, setTasks, setTaskToEdit }) => {
                         required
                     />
                     <div className="button-container">
-                        <button type="submit" className="submit-btn">
-                            Сохранить
-                        </button>
-                        <button type="button" className="cancel-btn" onClick={onClose}>
-                            Отмена
-                        </button>
+                        <button type="submit" className="submit-btn">Сохранить</button>
+                        <button type="button" className="cancel-btn" onClick={onClose}>Отмена</button>
                     </div>
                 </form>
             </div>

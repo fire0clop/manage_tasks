@@ -1,7 +1,3 @@
-/* ========================= */
-/*  ОБЩЕЕ СТИЛИЗАЦИЯ        */
-/* ========================= */
-
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -34,10 +30,6 @@
     text-align: center;
 }
 
-/* ========================= */
-/*  ФОРМА ВВОДА             */
-/* ========================= */
-
 .form-group {
     margin-bottom: 15px;
 }
@@ -49,7 +41,6 @@ label {
     display: block;
 }
 
-/* Поля ввода */
 .input-field,
 textarea,
 select {
@@ -69,24 +60,18 @@ select:focus {
     border: 1px solid #007bff;
 }
 
-/* Редактор текста */
 .rich-editor {
     background: #fff;
     border-radius: 8px;
     padding: 5px;
 }
 
-/* ========================= */
-/*  КНОПКИ СОХРАНЕНИЯ/ОТМЕНЫ */
-/* ========================= */
-
 .button-container {
     display: flex;
-    justify-content: space-between; /* Кнопки располагаются по краям */
+    justify-content: space-between;
     margin-top: 20px;
 }
 
-/* Кнопка "Отмена" */
 .button-cancel {
     background-color: #d9534f;
     border: none;
@@ -105,7 +90,6 @@ select:focus {
     transform: translateY(-2px);
 }
 
-/* Кнопка "Сохранить" */
 .button-submit {
     background-color: #5cb85c;
     border: none;
@@ -123,10 +107,6 @@ select:focus {
     background-color: #4cae4c;
     transform: translateY(-2px);
 }
-
-/* ========================= */
-/*  АНИМАЦИЯ ОКНА           */
-/* ========================= */
 
 @keyframes slideIn {
     from {

@@ -1,27 +1,26 @@
 from fastapi import FastAPI, HTTPException, Depends, Security
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPBearer
 from pydantic import BaseModel
 from typing import Optional
 import psycopg2
-from fastapi.middleware.cors import CORSMiddleware
+import jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-import jwt
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPBearer
 
-# Инициализация FastAPI
 app = FastAPI()
 
-# Настройки CORS (для связи с React)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Разрешаем запросы с React
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешаем все методы (GET, POST, PATCH, DELETE)
-    allow_headers=["*"],  # Разрешаем любые заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Конфигурация JWT и хеширования паролей
-SECRET_KEY = "your_secret_key"  # Замени на свой секретный ключ
+
+SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -29,34 +28,37 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 security = HTTPBearer()
 
-# Функция подключения к БД PostgreSQL
+
 def get_db_connection():
-    conn = psycopg2.connect(
+    """Создает соединение с базой данных PostgreSQL."""
+    return psycopg2.connect(
         dbname="task_manage",
         user="postgres",
         password="Tujh7562",
         host="localhost",
         port="5432"
     )
-    return conn
 
-# Хеширование пароля
-def hash_password(password: str):
+
+def hash_password(password: str) -> str:
+    """Хеширует пароль."""
     return pwd_context.hash(password)
 
-# Проверка пароля
-def verify_password(plain_password, hashed_password):
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Проверяет соответствие пароля хешу."""
     return pwd_context.verify(plain_password, hashed_password)
 
-# Создание JWT-токена
-def create_access_token(data: dict, expires_delta: timedelta):
+
+def create_access_token(data: dict, expires_delta: timedelta) -> str:
+    """Создает JWT-токен."""
     to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": datetime.utcnow() + expires_delta})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# Проверка токена (аутентификация пользователя)
-def get_current_user(token: str = Security(oauth2_scheme)):
+
+def get_current_user(token: str = Security(oauth2_scheme)) -> str:
+    """Получает текущего пользователя из JWT-токена."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload["sub"]
@@ -65,14 +67,16 @@ def get_current_user(token: str = Security(oauth2_scheme)):
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Недействительный токен")
 
-# Pydantic-модели
+
 class UserCreate(BaseModel):
     email: str
     password: str
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class TaskCreate(BaseModel):
     title: str
@@ -80,132 +84,107 @@ class TaskCreate(BaseModel):
     status: str
     deadline: Optional[str]
 
+
 class TaskUpdate(BaseModel):
     status: str
 
-# Эндпоинт регистрации пользователя
+
 @app.post("/register/")
 def register(user: UserCreate):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    """Регистрирует нового пользователя."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM users WHERE email = %s", (user.email,))
+            if cursor.fetchone():
+                raise HTTPException(status_code=400, detail="Пользователь уже существует")
 
-    cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
-    existing_user = cursor.fetchone()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Пользователь уже существует")
-
-    hashed_password = hash_password(user.password)
-    cursor.execute(
-        "INSERT INTO users (email, password) VALUES (%s, %s)",
-        (user.email, hashed_password)
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
+            cursor.execute(
+                "INSERT INTO users (email, password) VALUES (%s, %s)",
+                (user.email, hash_password(user.password))
+            )
+            conn.commit()
 
     return {"message": "Пользователь успешно зарегистрирован"}
 
-# Эндпоинт входа (получение JWT-токена)
+
 @app.post("/token", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, email, password FROM users WHERE email = %s", (form_data.username,))
-    user = cursor.fetchone()
-    if not user or not verify_password(form_data.password, user[2]):
-        raise HTTPException(status_code=401, detail="Неверные учетные данные")
+    """Авторизация пользователя и получение JWT-токена."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, email, password FROM users WHERE email = %s", (form_data.username,))
+            user = cursor.fetchone()
 
-    access_token = create_access_token(
-        data={"sub": user[1]},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    cursor.close()
-    conn.close()
+            if not user or not verify_password(form_data.password, user[2]):
+                raise HTTPException(status_code=401, detail="Неверные учетные данные")
+
+            access_token = create_access_token(
+                data={"sub": user[1]},
+                expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            )
 
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Эндпоинт для создания задачи (защищен токеном)
+
 @app.post("/tasks/")
-def create_task(task: TaskCreate, current_user: str = Depends(get_current_user), db_conn=Depends(get_db_connection)):
-    try:
-        cursor = db_conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO tasks (title, description, status, deadline)
-            VALUES (%s, %s, %s, %s)
-            RETURNING id
-            """,
-            (task.title, task.description, task.status, task.deadline)
-        )
-        task_id = cursor.fetchone()[0]
-        db_conn.commit()
-        return {"message": "Задача успешно создана", "id": task_id}
-    except Exception as e:
-        db_conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
+def create_task(task: TaskCreate, current_user: str = Depends(get_current_user)):
+    """Создает новую задачу."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO tasks (title, description, status, deadline)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id
+                """,
+                (task.title, task.description, task.status, task.deadline)
+            )
+            task_id = cursor.fetchone()[0]
+            conn.commit()
 
-# Эндпоинт для получения списка задач (защищен токеном)
+    return {"message": "Задача успешно создана", "id": task_id}
+
+
 @app.get("/tasks/")
-def get_tasks(current_user: str = Depends(get_current_user), db_conn=Depends(get_db_connection)):
-    try:
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT id, title, description, status, deadline FROM tasks")
-        tasks = cursor.fetchall()
-        return tasks
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
+def get_tasks(current_user: str = Depends(get_current_user)):
+    """Возвращает список задач."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, title, description, status, deadline FROM tasks")
+            tasks = cursor.fetchall()
 
-# Эндпоинт для удаления задачи (защищен токеном)
+    return tasks
+
+
 @app.delete("/tasks/{task_id}")
-def delete_task(task_id: int, current_user: str = Depends(get_current_user), db_conn=Depends(get_db_connection)):
-    try:
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT id FROM tasks WHERE id = %s", (task_id,))
-        task_exists = cursor.fetchone()
-        if not task_exists:
-            raise HTTPException(status_code=404, detail="Задача не найдена")
+def delete_task(task_id: int, current_user: str = Depends(get_current_user)):
+    """Удаляет задачу."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM tasks WHERE id = %s", (task_id,))
+            if not cursor.fetchone():
+                raise HTTPException(status_code=404, detail="Задача не найдена")
 
-        cursor.execute("DELETE FROM tasks WHERE id = %s", (task_id,))
-        db_conn.commit()
-        return {"message": "Задача успешно удалена"}
-    except Exception as e:
-        db_conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
+            cursor.execute("DELETE FROM tasks WHERE id = %s", (task_id,))
+            conn.commit()
 
-# Эндпоинт для обновления задачи (изменения статуса)
+    return {"message": "Задача успешно удалена"}
+
+
 @app.patch("/tasks/{task_id}")
 def update_task_status(
         task_id: int,
         task_update: TaskUpdate,
         current_user: str = Depends(get_current_user),
-        db_conn=Depends(get_db_connection),
 ):
-    try:
-        cursor = db_conn.cursor()
+    """Обновляет статус задачи."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM tasks WHERE id = %s", (task_id,))
+            if not cursor.fetchone():
+                raise HTTPException(status_code=404, detail="Задача не найдена")
 
-        # Проверяем, существует ли задача
-        cursor.execute("SELECT id FROM tasks WHERE id = %s", (task_id,))
-        task_exists = cursor.fetchone()
-        if not task_exists:
-            raise HTTPException(status_code=404, detail="Задача не найдена")
+            cursor.execute("UPDATE tasks SET status = %s WHERE id = %s", (task_update.status, task_id))
+            conn.commit()
 
-        # Обновляем статус
-        cursor.execute(
-            "UPDATE tasks SET status = %s WHERE id = %s",
-            (task_update.status, task_id),
-        )
-        db_conn.commit()
-
-        return {"message": "Статус задачи обновлен"}
-    except Exception as e:
-        db_conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-
+    return {"message": "Статус задачи обновлен"}

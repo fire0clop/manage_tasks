@@ -1,25 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css"; // Подключаем стили
+import "./Login.css";
 
 const Login = ({ onLogin }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
-    const navigate = useNavigate(); // Навигация
+    const navigate = useNavigate();
     const API_URL = process.env.REACT_APP_API_URL;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const formData = new FormData();
-        formData.append("username", email);
-        formData.append("password", password);
-
         try {
             const response = await fetch(`${API_URL}/token`, {
                 method: "POST",
-                body: formData,
+                body: new URLSearchParams({ username: email, password }),
             });
 
             const data = await response.json();
@@ -30,7 +26,7 @@ const Login = ({ onLogin }) => {
 
             localStorage.setItem("token", data.access_token);
             onLogin();
-            navigate("/"); // Перенаправляем на Kanban-доску
+            navigate("/");
         } catch (err) {
             setError(err.message);
         }

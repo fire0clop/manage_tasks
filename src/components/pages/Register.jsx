@@ -19,8 +19,8 @@ const Register = ({ onRegister }) => {
                 body: JSON.stringify({ email, password }),
             });
 
-            const data = await response.json();
             if (!response.ok) {
+                const data = await response.json();
                 throw new Error(data.detail || "Ошибка регистрации");
             }
 
@@ -29,11 +29,12 @@ const Register = ({ onRegister }) => {
                 body: new URLSearchParams({ username: email, password }),
             });
 
-            const loginData = await loginResponse.json();
             if (!loginResponse.ok) {
+                const loginData = await loginResponse.json();
                 throw new Error(loginData.detail || "Ошибка входа после регистрации");
             }
 
+            const loginData = await loginResponse.json();
             localStorage.setItem("token", loginData.access_token);
             onRegister();
             navigate("/");
@@ -47,14 +48,13 @@ const Register = ({ onRegister }) => {
             <div className="register-container">
                 <h2>Регистрация</h2>
                 {error && <p className="error">{error}</p>}
-                <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+                <form onSubmit={handleSubmit}>
                     <input
                         type="email"
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        style={{ width: "100%" }}
                     />
                     <input
                         type="password"
@@ -62,11 +62,9 @@ const Register = ({ onRegister }) => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        style={{ width: "100%" }}
                     />
                     <button type="submit">Зарегистрироваться</button>
                 </form>
-
             </div>
         </div>
     );
